@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: coupon-management
+  data:
+    mongodb:
+      uri: mongodb+srv://madesh55204:MH7mRRPAZU2yyzOe@cluster0.am9ts.mongodb.net/coupon_management
+      database: coupon_management
