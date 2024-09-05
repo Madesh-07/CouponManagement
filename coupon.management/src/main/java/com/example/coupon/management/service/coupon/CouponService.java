@@ -1,4 +1,4 @@
-package com.example.coupon.management.service;
+package com.example.coupon.management.service.coupon;
 
 import com.example.coupon.management.model.Coupon;
 

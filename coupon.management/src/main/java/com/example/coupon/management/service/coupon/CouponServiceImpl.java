@@ -1,12 +1,20 @@
-package com.example.coupon.management.service;
+package com.example.coupon.management.service.coupon;
 
 import com.example.coupon.management.model.Coupon;
+import com.example.coupon.management.repository.CouponRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-public class CouponServiceImpl implements CouponService{
+@Service
+public class CouponServiceImpl implements CouponService {
+
+    @Autowired
+    CouponRepository couponRepo;
+
     public Coupon addCoupon(Coupon coupon) throws Exception{
-        return null;
+        return couponRepo.save(coupon);
     }
     public Coupon getCoupon(Long couponId) throws Exception{
         return null;

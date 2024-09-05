@@ -1,4 +1,4 @@
-package com.example.coupon.management;
+package com.example.coupon.management.enums.coupon;
 
 public enum CouponType {
     CART_WISE("cart-wise"),

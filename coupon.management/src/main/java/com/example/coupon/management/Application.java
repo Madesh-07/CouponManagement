@@ -1,16 +1,13 @@
 package com.example.coupon.management;
 
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
-import java.util.List;
+import java.util.Date;
 
 @SpringBootApplication
-@EnableAutoConfiguration(exclude={MongoAutoConfiguration.class})
+@EnableMongoRepositories
 public class Application {
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);

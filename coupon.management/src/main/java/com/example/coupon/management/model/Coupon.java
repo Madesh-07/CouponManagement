@@ -1,21 +1,37 @@
 package com.example.coupon.management.model;
 
-import java.util.Date;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.time.LocalDate;
+import java.util.List;
+
+@Document("coupons")
 public class Coupon {
+    @Id
+    @Field("_couponid")
     private Long couponId;
-    private String name;
+
+    @Indexed(unique = true)
+    @Field("type")
+    private String type;
+
+    @Field("description")
     private String description;
-    private Date expirationDate;
-    private int repitionLimit;
+
+    @Field("expiration_date")
+    private LocalDate expirationDate;
+
+    @Field("status")
     private boolean status;
 
-    public Coupon(Long couponId, String name, String description, Date expirationDate,int repitionLimit) {
+    public Coupon(Long couponId, String type, String description, LocalDate expirationDate) {
         this.couponId = couponId;
-        this.name = name;
+        this.type = type;
         this.description = description;
         this.expirationDate = expirationDate;
-        this.repitionLimit = repitionLimit;
         this.status = true; // default to active
     }
 
@@ -23,18 +39,17 @@ public class Coupon {
         return couponId;
     }
 
-    public String getName() {
-        return name;
+    public String getType() {
+        return type;
     }
 
     public String getDescription() {
         return description;
     }
 
-    public Date getExpirationDate() {
+    public LocalDate getExpirationDate() {
         return expirationDate;
     }
-
     public boolean isStatus() {
         return status;
     }

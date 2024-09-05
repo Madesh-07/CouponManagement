@@ -1,17 +1,34 @@
 package com.example.coupon.management.model;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+@Document("products")
 public class Product {
+    @Id
+    @Field("_productId")
     private Long productId;
+
+    @Field("name")
+    @Indexed(unique = true)
     private String name;
+
+    @Field("price")
     private double price;
-    private double discount; // Product-wise discount
+
+    @Field("discount")
+    private double discount;
+
+    @Field("quantity")
     private int quantity;
 
-    public Product(Long productId, String name, double price) {
+    public Product(Long productId, String name, double price,double discount) {
         this.productId = productId;
         this.name = name;
         this.price = price;
-        this.discount = 0.0; // Initialize discount to 0
+        this.discount = discount; // Initialize discount to 0
     }
 
     public Long getProductId() {

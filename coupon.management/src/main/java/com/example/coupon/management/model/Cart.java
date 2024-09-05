@@ -1,9 +1,18 @@
 package com.example.coupon.management.model;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Document("carts")
 public class Cart {
+    @Id
+    @Field("_cartId")
+    @Indexed(unique = true)
     private Long cartId;
     private List<Product> products;
     private double total;
