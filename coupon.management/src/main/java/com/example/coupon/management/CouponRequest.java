@@ -1,13 +1,16 @@
 package com.example.coupon.management;
 
 
-public class CouponRequest {
+import com.example.coupon.management.model.Coupon;
+import com.fasterxml.jackson.databind.JsonNode;
+
+public class CouponRequest<T extends Coupon> {
     private String type;
-    private Object details;
+    private JsonNode details;
 
     public CouponRequest() {}
 
-    public CouponRequest(String type, Object details) {
+    public CouponRequest(String type, JsonNode details) {
         this.type = type;
         this.details = details;
     }
@@ -16,15 +19,7 @@ public class CouponRequest {
         return type;
     }
 
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public Object getDetails() {
+    public JsonNode getDetails() {
         return details;
-    }
-
-    public void setDetails(Object details) {
-        this.details = details;
     }
 }

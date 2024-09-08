@@ -6,10 +6,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 @Document("products")
-public class Product {
+public class Product{
     @Id
-    @Field("_productId")
-    private Long productId;
+    @Field("product_id")
+    private int productId;
 
     @Field("name")
     @Indexed(unique = true)
@@ -18,20 +18,26 @@ public class Product {
     @Field("price")
     private double price;
 
-    @Field("discount")
-    private double discount;
+    @Field("total_discount")
+    private double totalDiscount;
 
     @Field("quantity")
     private int quantity;
 
-    public Product(Long productId, String name, double price,double discount) {
+    @Field("available_quantity")
+    private int available_quantity;
+
+    public Product(){
+
+    }
+    public Product(int productId, String name, double price,double totalDiscount) {
         this.productId = productId;
         this.name = name;
         this.price = price;
-        this.discount = discount; // Initialize discount to 0
+        this.totalDiscount = totalDiscount; // Initialize discount to 0
     }
 
-    public Long getProductId() {
+    public int getProductId() {
         return productId;
     }
 
@@ -43,16 +49,20 @@ public class Product {
         return price;
     }
 
-    public double getDiscount() {
-        return discount;
+    public double getTotalDiscount() {
+        return totalDiscount;
     }
 
-    public void setDiscount(double discount) {
-        this.discount = discount;
+    public void setTotalDiscount(double totalDiscount) {
+        this.totalDiscount = totalDiscount;
     }
 
     public int getQuantity() {
         return quantity;
+    }
+
+    public int getAvailable_quantity(){
+        return available_quantity;
     }
 
     public void setQuantity(int quantity) {

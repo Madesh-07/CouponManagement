@@ -1,41 +1,50 @@
 package com.example.coupon.management.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.*;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Document("coupons")
-public class Coupon {
+public class Coupon{
     @Id
-    @Field("_couponid")
-    private Long couponId;
+    @Field("couponId")
+    private int couponId;
 
-    @Indexed(unique = true)
     @Field("type")
+    @Indexed(unique = true)
     private String type;
 
     @Field("description")
     private String description;
 
+    @Field("code")
+    private String code;
+
     @Field("expiration_date")
+    @JsonDeserialize(using = LocalDateDeserializer.class)
+    @JsonProperty("expiration_date")
     private LocalDate expirationDate;
 
     @Field("status")
-    private boolean status;
+    private boolean status = true;
+    private double discount;
 
-    public Coupon(Long couponId, String type, String description, LocalDate expirationDate) {
-        this.couponId = couponId;
+    public Coupon(){
+    }
+    public Coupon(String type, String description, LocalDate expirationDate,String code) {
         this.type = type;
         this.description = description;
-        this.expirationDate = expirationDate;
-        this.status = true; // default to active
+        this.expirationDate = expirationDate;// default to active
+        this.code = code;
     }
 
-    public Long getCouponId() {
+    public int getCouponId() {
         return couponId;
     }
 
@@ -57,4 +66,17 @@ public class Coupon {
     public void setStatus(boolean status) {
         this.status = status;
     }
+
+    public String getCode() {
+        return code;
+    }
+
+    public double getDiscount() {
+        return discount;
+    }
+
+    public void setDiscount(double discount) {
+        this.discount = discount;
+    }
+
 }

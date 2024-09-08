@@ -14,10 +14,16 @@ public class Cart {
     @Field("_cartId")
     @Indexed(unique = true)
     private Long cartId;
+    @Field("items")
     private List<Product> products;
-    private double total;
-    private final String ADD = "Add";
-    private final String REMOVE = "Remove";
+    @Field("total_price")
+    private double totalPrice;
+
+    @Field("total_discount")
+    private double totalDiscount;
+    @Field("final_price")
+    private double finalPrice;
+
     public Cart() {
         this.products = new ArrayList<>();
     }
@@ -29,30 +35,36 @@ public class Cart {
         this.cartId = cartId;
     }
 
-    public void addProduct(Product product, int quantity) {
-        product.setQuantity(quantity);
-        products.add(product);
-        updateTotal(product.getPrice(),ADD);
-    }
-
-    public void removeProduct(Product product) {
-        products.remove(product);
-        updateTotal(product.getPrice(),REMOVE);
-    }
 
     public List<Product> getProducts() {
         return products;
     }
 
-    private void updateTotal(double price,String operation) {
-        if(operation.equals(ADD)) {
-            this.total = this.total + price;
-        }else if (operation.equals(REMOVE)){
-            this.total = this.total - price;
-        }
-    }
 
     public double getTotal() {
-        return total;
+        return totalPrice;
+    }
+
+    public double getTotalDiscount() {
+        return totalDiscount;
+    }
+
+    public double getFinalPrice() {
+        return finalPrice;
+    }
+    public void setTotalDiscount(double totalDiscount) {
+        this.totalDiscount = totalDiscount;
+    }
+
+    public double getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(double totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
+    public void setFinalPrice(double finalPrice) {
+        this.finalPrice = finalPrice;
     }
 }

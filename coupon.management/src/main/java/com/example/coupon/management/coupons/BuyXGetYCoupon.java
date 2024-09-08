@@ -4,11 +4,11 @@ import com.example.coupon.management.enums.coupon.CouponType;
 import com.example.coupon.management.model.Coupon;
 import com.example.coupon.management.model.Product;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDate;
 import java.util.List;
 
-@Document("buy_x_get_y_coupon")
 public class BuyXGetYCoupon extends Coupon {
     private List<Product> buyProducts;
     private List<Product> getProducts;
@@ -16,8 +16,8 @@ public class BuyXGetYCoupon extends Coupon {
     private int buyQuantity;
     private int getQuantity;
 
-    public BuyXGetYCoupon(Long couponId, List<Product> buyProducts, List<Product> getProducts, int buyQuantity, int getQuantity, String description, LocalDate expirationDate, int repetitionLimit) {
-        super(couponId, CouponType.BXGY.getValue(), description, expirationDate);
+    public BuyXGetYCoupon(List<Product> buyProducts, List<Product> getProducts, int buyQuantity, int getQuantity, String description, LocalDate expirationDate, int repetitionLimit,String code) {
+        super(CouponType.BXGY.getValue(), description, expirationDate,code);
         this.buyProducts = buyProducts;
         this.getProducts = getProducts;
         this.buyQuantity = buyQuantity;
