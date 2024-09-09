@@ -39,11 +39,20 @@ public class BuyXGetYStrategy implements CouponStrategy {
         return couponDAL.getCouponsByQuery(query,BuyXGetYCoupon.class);
     }
 
+    /*
+       To get valid coupons
+    */
     @Override
     public List<BuyXGetYCoupon> getValidCoupons() throws Exception {
-        return List.of();
+        Criteria criteria = Criteria.where("status").is("true");
+        criteria = criteria.andOperator(Criteria.where("type").is(CouponType.BXGY.getValue()));
+        Query query = Query.query(criteria);
+        return couponDAL.getCouponsByQuery(query, BuyXGetYCoupon.class);
     }
 
+    /*
+       To get all applicable coupons
+    */
     @Override
     public List<? extends Coupon> getApplicableCoupons(Cart cart) throws Exception {
         this.cart = cart;
@@ -59,6 +68,9 @@ public class BuyXGetYStrategy implements CouponStrategy {
             return null;
         }
     }
+    /*
+        To filter out the BUYXGETY coupons.
+     */
     private void filterCoupons() throws Exception {
         List<BuyXGetYCoupon> buyXgetYFilteredCoupons = new ArrayList<>();
         coupons.stream().forEach(bxgyCoupon -> {
@@ -71,7 +83,9 @@ public class BuyXGetYStrategy implements CouponStrategy {
         });
         this.coupons = buyXgetYFilteredCoupons;
     }
-
+    /*
+         To calculate discount for the cart w.r.t BXGY coupon
+     */
     public void calculateDiscount() throws Exception {
         List<BuyXGetYCoupon> coupons = this.coupons;
         coupons.stream()
@@ -89,6 +103,9 @@ public class BuyXGetYStrategy implements CouponStrategy {
                             });
                 });
     }
+    /*
+        To calculate discount for the cart w.r.t BXGY coupon if only get products is present
+    */
     private Double calculateDiscountIfGetProductsPresent(List<Product> getProducts,BuyXGetYCoupon coupon){
         return getProducts.stream()
                 .filter(product -> Objects.nonNull(productIdVQuantity.get(product.getProductId())))
@@ -101,7 +118,9 @@ public class BuyXGetYStrategy implements CouponStrategy {
                 })
                 .sum();
     }
-
+    /*
+        To get product price by its id
+    */
     private double getProductPriceById(int productId){
         Cart cart = this.cart;
         return cart.getProducts().stream()
@@ -110,6 +129,9 @@ public class BuyXGetYStrategy implements CouponStrategy {
                 .map(Product::getPrice)
                 .orElse(0.0);
     }
+    /*
+       Constructing util for product vs quantity
+    */
     private Map<Integer,Integer> constructProductIdVsQuantity(List<Product> products, Double totalCartPrice){
         Map<Integer,Integer> productIdVsQuantity = new HashMap<Integer,Integer>();
         for(Product product : products){
@@ -119,7 +141,9 @@ public class BuyXGetYStrategy implements CouponStrategy {
         }
         return productIdVsQuantity;
     }
-
+    /*
+         Constructing query for applicable BXGY coupons
+     */
     private Query constructQueryForGettingApplicableCoupons(Map<Integer,Integer> productIdVQuantity){
         Criteria criteria = Criteria.where("type").is(CouponType.BXGY.getValue());
         criteria = criteria.andOperator(Criteria.where("buy_products.product_id").in(productIdVQuantity.keySet()));
@@ -156,10 +180,14 @@ public class BuyXGetYStrategy implements CouponStrategy {
         cart.setTotalDiscount(totalDiscount);
         cart.setTotalPrice(this.totalCartPrice);
         cart.setFinalPrice(this.totalCartPrice - totalDiscount);
-        updateRepitionLimitValue(bxgyCoupon);
+        //Once user applied this current coupon, we should reduce the limit.
+        updateRepetionLimitValue(bxgyCoupon);
         return cart;
     }
-    private void updateRepitionLimitValue(BuyXGetYCoupon bxgyCoupon) throws Exception{
+    /*
+       Updating repetition value if user applies BXGY coupon
+    */
+    private void updateRepetionLimitValue(BuyXGetYCoupon bxgyCoupon) throws Exception{
         int repitionLimit = bxgyCoupon.getRepetitionLimit();
         bxgyCoupon.setRepetitionLimit(repitionLimit -1);
         couponDAL.updateSpecificCoupon(bxgyCoupon);

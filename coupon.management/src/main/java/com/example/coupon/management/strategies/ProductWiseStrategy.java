@@ -1,5 +1,7 @@
 package com.example.coupon.management.strategies;
 
+import com.example.coupon.management.CartWiseCoupon;
+import com.example.coupon.management.coupons.BuyXGetYCoupon;
 import com.example.coupon.management.coupons.ProductWiseCoupon;
 import com.example.coupon.management.dal.CouponDAL;
 import com.example.coupon.management.enums.coupon.CouponType;
@@ -28,14 +30,18 @@ public class ProductWiseStrategy implements CouponStrategy {
     }
 
     @Override
-    public List<ProductWiseCoupon> getAllCoupons() throws Exception {
-        return List.of();
+    public List<CartWiseCoupon> getAllCoupons() throws Exception {
+        Criteria criteria = Criteria.where("type").is(CouponType.PRODUCT_WISE.getValue());
+        Query query = Query.query(criteria);
+        return couponDAL.getCouponsByQuery(query, BuyXGetYCoupon.class);
     }
 
     @Override
-    public List<ProductWiseCoupon> getValidCoupons() throws Exception {
-        return null;
-        //return (List<ProductWiseCoupon>)CouponDAO.getInstance().findCouponsByExpiryDateGreaterThanEqual(new Date(),"product-wise");
+    public List<CartWiseCoupon> getValidCoupons() throws Exception {
+        Criteria criteria = Criteria.where("status").is("true");
+        criteria = criteria.andOperator(Criteria.where("type").is(CouponType.PRODUCT_WISE.getValue()));
+        Query query = Query.query(criteria);
+        return couponDAL.getCouponsByQuery(query, BuyXGetYCoupon.class);
     }
 
     @Override
@@ -63,7 +69,9 @@ public class ProductWiseStrategy implements CouponStrategy {
         setTotalPriceAndDiscount(couponProductId,products,productWiseCoupon);
         return this.cart;
     }
-
+    /*
+      Setting total discount for the product and the cart's total discount value
+     */
     private void setTotalPriceAndDiscount(int couponProductId,List<Product> products,ProductWiseCoupon productWiseCoupon) throws Exception{
         Double totalDiscount = 0.0;
         for(Product product : products){
@@ -88,7 +96,9 @@ public class ProductWiseStrategy implements CouponStrategy {
             }
         }
     }
-
+    /*
+         constructing productId vs total product price map
+     */
     private Map<Integer,Double> constructProductIdVsTotalProductPrice(List<Product> products, Double totalCartPrice){
         Map<Integer,Double> productIdVsTotalProductPrice = new HashMap<Integer,Double>();
         for(Product product : products){

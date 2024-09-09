@@ -1,6 +1,7 @@
 package com.example.coupon.management.strategies;
 
 import com.example.coupon.management.CartWiseCoupon;
+import com.example.coupon.management.coupons.BuyXGetYCoupon;
 import com.example.coupon.management.dal.CouponDAL;
 import com.example.coupon.management.enums.coupon.CouponAPIConstant;
 import com.example.coupon.management.enums.coupon.CouponType;
@@ -31,12 +32,17 @@ public class CartWiseStrategy implements CouponStrategy{
 
     @Override
     public List<CartWiseCoupon> getAllCoupons() throws Exception {
-        return List.of();
+        Criteria criteria = Criteria.where("type").is(CouponType.CART_WISE.getValue());
+        Query query = Query.query(criteria);
+        return couponDAL.getCouponsByQuery(query, BuyXGetYCoupon.class);
     }
 
     @Override
     public List<CartWiseCoupon> getValidCoupons() throws Exception {
-        return List.of();
+        Criteria criteria = Criteria.where("status").is("true");
+        criteria = criteria.andOperator(Criteria.where("type").is(CouponType.CART_WISE.getValue()));
+        Query query = Query.query(criteria);
+        return couponDAL.getCouponsByQuery(query, BuyXGetYCoupon.class);
     }
 
     @Override
@@ -53,7 +59,9 @@ public class CartWiseStrategy implements CouponStrategy{
             return null;
         }
     }
-
+    /*
+         To calculate discount for the cart w.r.t cart wise coupon
+      */
     public void calculateDiscount() throws Exception {
        List<CartWiseCoupon> coupons = this.coupons;
        for(CartWiseCoupon coupon : coupons){
@@ -61,14 +69,18 @@ public class CartWiseStrategy implements CouponStrategy{
            coupon.setDiscount(discount);
        }
     }
-
+    /*
+        To process the total cart price
+     */
     private void processTotalCartPrice(List<Product> products,Double totalCartPrice){
         for(Product product : products){
             Double totalProductPrice = product.getPrice() * product.getQuantity();
             this.totalCartPrice = this.totalCartPrice + totalProductPrice;
         }
     }
-
+    /*
+       Constructing query for applicable coupons
+     */
     private Query constructQueryForGettingApplicableCoupons(Double totalCartPrice) throws Exception{
         Criteria criteria = Criteria.where("type").is(CouponType.CART_WISE.getValue());
         criteria = criteria.andOperator(Criteria.where("threshold").lt(totalCartPrice));
@@ -94,6 +106,9 @@ public class CartWiseStrategy implements CouponStrategy{
             this.totalCartPrice = this.totalCartPrice + (product.getQuantity() * product.getPrice());
         }
     }
+    /*
+     To apply product wise discount in the cart
+    */
     private void applyProductWiseDiscountAndCalculateTotalDiscount(Double totalDiscount,Double percentage,List<Product> products){
         for(Product product : products){
             Double discount = (product.getPrice() * product.getQuantity()) / percentage;

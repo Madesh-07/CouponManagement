@@ -50,6 +50,9 @@ public class CouponUtil {
             throw new CouponException(CouponAPIConstant.COUPON_EXPIRED);
         }
     }
+    /*
+     Validation for create and update any type of available coupon
+    */
     @Autowired
     CouponDAL couponDAL;
     public Coupon validateCouponDetailsForCreateOrUpdate(CouponRequest couponRqst) throws Exception{
@@ -79,7 +82,9 @@ public class CouponUtil {
         ObjectNode details = (ObjectNode) couponRqst.getDetails();
         details.put("type", type);
     }
-
+    /*
+       It is used to get coupon by couponId
+     */
     public Coupon getCouponById(int couponId){
         return couponDAL.getCouponById(couponId);
     }
@@ -99,7 +104,9 @@ public class CouponUtil {
         }
         return new APIResponse(apiConstant);
     }
-
+    /*
+        constructing JSON for applicable coupon case
+     */
     public JsonNode constructJSONForApplicableCoupon(List<Coupon> coupons){
         ObjectNode responseJson = mapper.createObjectNode();
         ArrayNode couponJsons = mapper.createArrayNode();
@@ -112,7 +119,9 @@ public class CouponUtil {
         }
         responseJson.set("applicable_coupons",couponJsons);
         return responseJson;
-    }
+    } /*
+        constructing JSON for apply coupon case
+     */
     public JsonNode constructJSONForApplyCoupon(Cart cart) throws Exception{
         ObjectNode responseJson = mapper.createObjectNode();
         ObjectNode innerJson = mapper.createObjectNode();

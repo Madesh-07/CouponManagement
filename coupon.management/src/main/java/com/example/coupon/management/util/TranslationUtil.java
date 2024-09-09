@@ -12,7 +12,9 @@ public class TranslationUtil {
     @Autowired
     private static MessageSource messageSource;
     private static final String DEFAULT_L0CALE = "en_US";
-
+    /*
+      To get translated value
+    */
     public static String getTranslatedMessage(String messageId,Locale locale) {
         return messageSource.getMessage(messageId, null, Objects.nonNull(locale) ? locale : new Locale(DEFAULT_L0CALE));
     }
