@@ -9,7 +9,6 @@ import java.util.List;
 public interface CouponStrategy {
     public List<? extends Coupon> getAllCoupons() throws Exception;
     public List<? extends Coupon> getValidCoupons() throws Exception;
-    public List<? extends Coupon> getApplicableCoupons() throws Exception;
-    public Cart applyCoupon(Coupon coupon) throws Exception;
-    public void calculateDiscount() throws Exception;
+    public List<? extends Coupon> getApplicableCoupons(Cart cart) throws Exception;
+    public Cart applyCoupon(Coupon coupon,Cart cart) throws Exception;
 }

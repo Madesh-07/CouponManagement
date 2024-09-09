@@ -22,4 +22,12 @@ public class CouponRequest<T extends Coupon> {
     public JsonNode getDetails() {
         return details;
     }
+    public void setDetails(JsonNode details) {
+        this.details = details;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
 }

@@ -13,7 +13,7 @@ public class TranslationUtil {
     private static MessageSource messageSource;
     private static final String DEFAULT_L0CALE = "en_US";
 
-    public static String getTranslatedMessage(String messageId,String localeStr) {
-        return messageSource.getMessage(messageId, null, Objects.nonNull(localeStr) ? new Locale(localeStr) : new Locale(DEFAULT_L0CALE));
+    public static String getTranslatedMessage(String messageId,Locale locale) {
+        return messageSource.getMessage(messageId, null, Objects.nonNull(locale) ? locale : new Locale(DEFAULT_L0CALE));
     }
 }

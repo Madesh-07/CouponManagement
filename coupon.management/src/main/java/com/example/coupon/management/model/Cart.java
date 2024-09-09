@@ -1,20 +1,25 @@
 package com.example.coupon.management.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Document("carts")
+@Component
 public class Cart {
     @Id
     @Field("_cartId")
     @Indexed(unique = true)
     private Long cartId;
+
     @Field("items")
+    @JsonProperty("items")
     private List<Product> products;
     @Field("total_price")
     private double totalPrice;
@@ -39,10 +44,8 @@ public class Cart {
     public List<Product> getProducts() {
         return products;
     }
-
-
-    public double getTotal() {
-        return totalPrice;
+    public void setProducts(List<Product> products) {
+        this.products = products;
     }
 
     public double getTotalDiscount() {

@@ -15,7 +15,8 @@ public enum CouponAPIConstant implements APIConstant {
     COUPON_EXPIRED(403,"failure", "COUPON_EXPIRED", "Coupon has expired!"),
     COUPON_NOT_APPLICABLE(422,"failure", "COUPON_NOT_APPLICABLE", "Coupon is not applicable.Try with other coupons."),
     COUPON_LIMIT_REACHED(429, "failure", "COUPON_LIMIT_REACHED", "Coupon repetition limit has been reached.Try with other coupons."),
-    INVALID_COUPON_DETAILS(400, "failure", "INVALID_COUPON_DETAILS", "Invalid coupon details.Kindly revalidate it once.");
+    NO_APPLICABLE_COUPONS(400, "failure", "NO_APPLICABLE_COUPONS", "No Applicable coupons found for this cart!"),
+    NO_COUPONS_FOUND(400,"failure","NO_COUPONS_FOUND","No coupons found");
 
     private final int code;
     private final String status;

@@ -1,19 +1,27 @@
 package com.example.coupon.management.model;
 
+import com.example.coupon.management.dal.CouponDAL;
+import com.example.coupon.management.sequence.NextSequenceService;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.*;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.Random;
+import java.util.UUID;
 import java.util.List;
 
+@Component
 @Document("coupons")
 public class Coupon{
-    @Id
-    @Field("couponId")
+    @Field("coupon_id")
     private int couponId;
 
     @Field("type")
@@ -33,10 +41,10 @@ public class Coupon{
 
     @Field("status")
     private boolean status = true;
+    @JsonIgnore
     private double discount;
 
-    public Coupon(){
-    }
+    public Coupon(){}
     public Coupon(String type, String description, LocalDate expirationDate,String code) {
         this.type = type;
         this.description = description;
@@ -47,6 +55,10 @@ public class Coupon{
     public int getCouponId() {
         return couponId;
     }
+    public void setCouponId(int couponId) {
+        this.couponId = couponId;
+    }
+
 
     public String getType() {
         return type;
@@ -77,6 +89,10 @@ public class Coupon{
 
     public void setDiscount(double discount) {
         this.discount = discount;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
 }

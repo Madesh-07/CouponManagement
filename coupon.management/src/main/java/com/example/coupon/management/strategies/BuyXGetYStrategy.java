@@ -1,31 +1,36 @@
 package com.example.coupon.management.strategies;
 
 import com.example.coupon.management.coupons.BuyXGetYCoupon;
-import com.example.coupon.management.dao.CouponDAL;
+import com.example.coupon.management.dal.CouponDAL;
+import com.example.coupon.management.enums.coupon.CouponAPIConstant;
 import com.example.coupon.management.enums.coupon.CouponType;
+import com.example.coupon.management.exceptions.APIException;
+import com.example.coupon.management.exceptions.CouponException;
 import com.example.coupon.management.model.Cart;
 import com.example.coupon.management.model.Coupon;
 import com.example.coupon.management.model.Product;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
+@Lazy
 public class BuyXGetYStrategy implements CouponStrategy {
 
+    @Autowired
     CouponDAL couponDAL;
     Cart cart = null;
     List<BuyXGetYCoupon> coupons = new ArrayList<>();
     Map<Integer,Integer> productIdVQuantity = new HashMap<>();
+    Double totalCartPrice = 0.0;
     @Autowired
     public BuyXGetYStrategy(CouponDAL couponDAL){
         this.couponDAL = couponDAL;
-    }
-    public BuyXGetYStrategy(Cart cart){
-        this.cart = cart;
     }
     @Override
     public List<BuyXGetYCoupon> getAllCoupons() throws Exception {
@@ -40,19 +45,33 @@ public class BuyXGetYStrategy implements CouponStrategy {
     }
 
     @Override
-    public List<? extends Coupon> getApplicableCoupons() throws Exception {
+    public List<? extends Coupon> getApplicableCoupons(Cart cart) throws Exception {
+        this.cart = cart;
+        this.totalCartPrice = 0.0;
         List<Product> products = this.cart.getProducts();
-        Double totalCartPrice = 0.0;
         this.productIdVQuantity = constructProductIdVsQuantity(products,totalCartPrice);
         try{
             this.coupons = couponDAL.getCouponsByQuery(constructQueryForGettingApplicableCoupons(productIdVQuantity), BuyXGetYCoupon.class);
+            filterCoupons();
+            calculateDiscount();
             return coupons;
         }catch (Exception e){
             return null;
         }
     }
+    private void filterCoupons() throws Exception {
+        List<BuyXGetYCoupon> buyXgetYFilteredCoupons = new ArrayList<>();
+        coupons.stream().forEach(bxgyCoupon -> {
+            List<Integer> getProductIds = bxgyCoupon.getGetProducts().stream()
+                    .map(Product::getProductId) // assuming Product has an getId method
+                    .collect(Collectors.toList());
+            if (getProductIds.stream().anyMatch(productIdVQuantity::containsKey)) {
+                buyXgetYFilteredCoupons.add(bxgyCoupon);
+            }
+        });
+        this.coupons = buyXgetYFilteredCoupons;
+    }
 
-    @Override
     public void calculateDiscount() throws Exception {
         List<BuyXGetYCoupon> coupons = this.coupons;
         coupons.stream()
@@ -62,20 +81,20 @@ public class BuyXGetYStrategy implements CouponStrategy {
                                 int productId = product.getProductId();
                                 if (productIdVQuantity.containsKey(productId)) {
                                     int quantity = productIdVQuantity.get(productId);
-                                    if(quantity >= product.getQuantity()){
-                                        Double discount = calculateDiscountIfGetProductsPresent(coupon.getGetProducts());
+                                    if(quantity >= coupon.getBuyQuantity()){
+                                        Double discount = calculateDiscountIfGetProductsPresent(coupon.getGetProducts(),coupon);
                                         coupon.setDiscount(discount);
                                     }
                                 }
                             });
                 });
     }
-    private Double calculateDiscountIfGetProductsPresent(List<Product> products){
-        return products.stream()
+    private Double calculateDiscountIfGetProductsPresent(List<Product> getProducts,BuyXGetYCoupon coupon){
+        return getProducts.stream()
                 .filter(product -> Objects.nonNull(productIdVQuantity.get(product.getProductId())))
                 .mapToDouble(product -> {
-                    if(productIdVQuantity.get(product.getProductId()) > product.getQuantity()){
-                        return product.getQuantity() * getProductPriceById(product.getProductId());
+                    if(Objects.nonNull(productIdVQuantity.get(product.getProductId()))){
+                        return coupon.getGetQuantity() * getProductPriceById(product.getProductId());
                     } else {
                         return productIdVQuantity.get(product.getProductId()) * getProductPriceById(product.getProductId());
                     }
@@ -96,20 +115,74 @@ public class BuyXGetYStrategy implements CouponStrategy {
         for(Product product : products){
             Double totalProductPrice = product.getPrice() * product.getQuantity();
             productIdVsQuantity.put(product.getProductId(),product.getQuantity());
-            totalCartPrice = totalCartPrice + totalProductPrice;
+            this.totalCartPrice = this.totalCartPrice + totalProductPrice;
         }
         return productIdVsQuantity;
     }
 
     private Query constructQueryForGettingApplicableCoupons(Map<Integer,Integer> productIdVQuantity){
         Criteria criteria = Criteria.where("type").is(CouponType.BXGY.getValue());
-        criteria = criteria.andOperator(Criteria.where("buyProducts.productId").in(productIdVQuantity.keySet()));
+        criteria = criteria.andOperator(Criteria.where("buy_products.product_id").in(productIdVQuantity.keySet()));
         return Query.query(criteria);
     }
 
-
     @Override
-    public Cart applyCoupon(Coupon coupon) throws Exception {
-        return null;
+    public Cart applyCoupon(Coupon coupon,Cart cart) throws Exception {
+        BuyXGetYCoupon bxgyCoupon = (BuyXGetYCoupon)coupon;
+        if(bxgyCoupon.getRepetitionLimit() == 0){
+            throw new CouponException(CouponAPIConstant.COUPON_LIMIT_REACHED);
+        }
+        this.cart = cart;
+        this.totalCartPrice = 0.0;
+        List<Product> products = this.cart.getProducts();
+        List<Integer> buyProductIds = bxgyCoupon.getBuyProducts().stream()
+                .map(Product::getProductId) // assuming Product has an getId method
+                .collect(Collectors.toList());
+        List<Integer> getProductIds = bxgyCoupon.getGetProducts().stream()
+                .map(Product::getProductId) // assuming Product has an getId method
+                .collect(Collectors.toList());
+        this.productIdVQuantity = constructProductIdVsQuantity(products,this.totalCartPrice);
+        return constructCartDetails(bxgyCoupon,products,buyProductIds,getProductIds);
+    }
+    private Cart constructCartDetails(BuyXGetYCoupon bxgyCoupon, List<Product> products, List<Integer> buyProductIds, List<Integer> getProductIds) throws Exception {
+        productIdVQuantity.entrySet().stream()
+                .filter(entry -> buyProductIds.contains(entry.getKey()) && bxgyCoupon.getBuyQuantity() >= entry.getValue())
+                .forEach(entry -> modifyProductDetailsInCart(bxgyCoupon, products, getProductIds));
+
+        int totalDiscount = products.stream()
+                .map(Product::getTotalDiscount)
+                .mapToInt(Double::intValue)
+                .sum();
+        cart.setTotalDiscount(totalDiscount);
+        cart.setTotalPrice(this.totalCartPrice);
+        cart.setFinalPrice(this.totalCartPrice - totalDiscount);
+        updateRepitionLimitValue(bxgyCoupon);
+        return cart;
+    }
+    private void updateRepitionLimitValue(BuyXGetYCoupon bxgyCoupon) throws Exception{
+        int repitionLimit = bxgyCoupon.getRepetitionLimit();
+        bxgyCoupon.setRepetitionLimit(repitionLimit -1);
+        couponDAL.updateSpecificCoupon(bxgyCoupon);
+    }
+
+    private void modifyProductDetailsInCart(BuyXGetYCoupon bxgyCoupon, List<Product> products, List<Integer> getProductIds) {
+        getProductIds.stream()
+                .filter(productIdVQuantity::containsKey)
+                .forEach(id -> {
+                    int getCartProductQuantity = productIdVQuantity.get(id);
+                    Product product = products.stream()
+                            .filter(p -> p.getProductId() == id)
+                            .findFirst()
+                            .orElseThrow();
+
+                    double price = product.getPrice();
+                    double totalDiscount = price * getCartProductQuantity;
+                    price = price / getCartProductQuantity;
+                    getCartProductQuantity = bxgyCoupon.getGetQuantity() + getCartProductQuantity;
+
+                    product.setPrice(totalDiscount/getCartProductQuantity);
+                    product.setTotalDiscount(totalDiscount);
+                    product.setQuantity(getCartProductQuantity);
+                });
     }
 }

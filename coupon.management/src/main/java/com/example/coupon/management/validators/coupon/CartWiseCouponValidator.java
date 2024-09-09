@@ -1,21 +1,23 @@
-//package com.example.coupon.management.validators.coupon;
+package com.example.coupon.management.validators.coupon;
+
+import com.example.coupon.management.model.Coupon;
+import com.example.coupon.management.validators.CommonValidator;
+
+public class CartWiseCouponValidator implements CommonValidator {
+    private boolean isValid;
+
+    @Override
+    public void validate() {
+
+    }
+
+    //    private boolean validateThresholdValue(){
 //
-//import com.example.coupon.management.model.Coupon;
-//import com.example.coupon.management.validators.CommonValidator;
-//
-//public class CartWiseCouponValidator implements CommonValidator {
-//    private boolean isValid;
-//    @Override
-//    public void validate(Coupon coupon) {
-//        validateThresholdValue();
 //    }
-//    private boolean validateThresholdValue(){
-//
-//    }
-//    @Override
-//    public boolean hasError() {
-//        return isValid;
-//    }
-//
-//
-//}
+    @Override
+    public boolean hasError() {
+        return isValid;
+    }
+
+
+}

@@ -1,17 +1,21 @@
 package com.example.coupon.management.strategies;
 
 import com.example.coupon.management.coupons.ProductWiseCoupon;
-import com.example.coupon.management.dao.CouponDAL;
+import com.example.coupon.management.dal.CouponDAL;
 import com.example.coupon.management.enums.coupon.CouponType;
 import com.example.coupon.management.model.Cart;
 import com.example.coupon.management.model.Coupon;
 import com.example.coupon.management.model.Product;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+@Component
+@Lazy
 public class ProductWiseStrategy implements CouponStrategy {
     CouponDAL couponDAL;
     Cart cart = null;
@@ -21,9 +25,6 @@ public class ProductWiseStrategy implements CouponStrategy {
     @Autowired
     public ProductWiseStrategy(CouponDAL couponDAL){
         this.couponDAL = couponDAL;
-    }
-    public ProductWiseStrategy(Cart cart){
-        this.cart = cart;
     }
 
     @Override
@@ -38,11 +39,14 @@ public class ProductWiseStrategy implements CouponStrategy {
     }
 
     @Override
-    public List<ProductWiseCoupon> getApplicableCoupons() throws Exception {
+    public List<ProductWiseCoupon> getApplicableCoupons(Cart cart) throws Exception {
+        this.cart = cart;
+        this.totalCartPrice = 0.0;
         List<Product> products = cart.getProducts();
-        this.productIdVsTotalProductPrice = constructProductIdVsTotalProductPrice(products,totalCartPrice);
+        this.productIdVsTotalProductPrice = constructProductIdVsTotalProductPrice(products,this.totalCartPrice);
         try{
             this.coupons = couponDAL.getCouponsByQuery(constructQueryForGettingApplicableCoupons(productIdVsTotalProductPrice), ProductWiseCoupon.class);
+            calculateDiscount();
             return this.coupons;
         }catch (Exception e){
             return null;
@@ -50,7 +54,9 @@ public class ProductWiseStrategy implements CouponStrategy {
     }
 
     @Override
-    public Cart applyCoupon(Coupon coupon) throws Exception {
+    public Cart applyCoupon(Coupon coupon,Cart cart) throws Exception {
+        this.cart = cart;
+        this.totalCartPrice = 0.0;
         ProductWiseCoupon productWiseCoupon = (ProductWiseCoupon) coupon;
         List<Product> products = this.cart.getProducts();
         int couponProductId = productWiseCoupon.getProductId();
@@ -59,21 +65,25 @@ public class ProductWiseStrategy implements CouponStrategy {
     }
 
     private void setTotalPriceAndDiscount(int couponProductId,List<Product> products,ProductWiseCoupon productWiseCoupon) throws Exception{
+        Double totalDiscount = 0.0;
         for(Product product : products){
             if(product.getProductId() == couponProductId){
-                product.setTotalDiscount(product.getPrice() % productWiseCoupon.getDiscountPercentage());
+                Double productDiscount = (product.getPrice() * product.getQuantity()) / productWiseCoupon.getDiscountPercentage();
+                product.setTotalDiscount(productDiscount);
+                totalDiscount = totalDiscount + productDiscount;
             }
-            totalCartPrice = totalCartPrice + (product.getPrice() * product.getQuantity());
+            this.totalCartPrice = this.totalCartPrice + (product.getPrice() * product.getQuantity());
         }
+        cart.setTotalDiscount(totalDiscount);
+        cart.setTotalPrice(this.totalCartPrice);
         cart.setFinalPrice(cart.getTotalPrice() - cart.getTotalDiscount());
     }
 
-    @Override
     public void calculateDiscount() throws Exception {
         List<ProductWiseCoupon> coupons = this.coupons;
         for(ProductWiseCoupon coupon : coupons){
             if(Objects.nonNull(productIdVsTotalProductPrice.get(coupon.getProductId()))){
-                Double discount = productIdVsTotalProductPrice.get(coupon.getProductId()) % coupon.getDiscountPercentage();
+                Double discount = productIdVsTotalProductPrice.get(coupon.getProductId()) / coupon.getDiscountPercentage();
                 coupon.setDiscount(discount);
             }
         }
@@ -84,7 +94,7 @@ public class ProductWiseStrategy implements CouponStrategy {
         for(Product product : products){
             Double totalProductPrice = product.getPrice() * product.getQuantity();
             productIdVsTotalProductPrice.put(product.getProductId(),totalProductPrice);
-            totalCartPrice = totalCartPrice + totalProductPrice;
+            this.totalCartPrice = this.totalCartPrice + totalProductPrice;
         }
         return productIdVsTotalProductPrice;
     }

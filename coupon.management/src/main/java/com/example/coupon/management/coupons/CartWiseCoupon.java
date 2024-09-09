@@ -4,12 +4,14 @@ import com.example.coupon.management.enums.coupon.CouponType;
 import com.example.coupon.management.model.Coupon;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDate;
 
 public class CartWiseCoupon extends Coupon {
     @JsonProperty("threshold")
     private double threshold;
+    @Field("discount_percentage")
     @JsonProperty("discount_percentage")
     private double discountPercentage;
 

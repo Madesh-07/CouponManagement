@@ -4,7 +4,7 @@ import com.example.coupon.management.CartWiseCoupon;
 import com.example.coupon.management.CouponRequest;
 import com.example.coupon.management.coupons.BuyXGetYCoupon;
 import com.example.coupon.management.coupons.ProductWiseCoupon;
-import com.example.coupon.management.dao.CouponDAL;
+import com.example.coupon.management.dal.CouponDAL;
 import com.example.coupon.management.enums.common.APIConstant;
 import com.example.coupon.management.enums.coupon.CouponAPIConstant;
 import com.example.coupon.management.enums.coupon.CouponType;
@@ -12,6 +12,7 @@ import com.example.coupon.management.exceptions.APIException;
 import com.example.coupon.management.exceptions.CouponException;
 import com.example.coupon.management.model.Cart;
 import com.example.coupon.management.model.Coupon;
+import com.example.coupon.management.model.Product;
 import com.example.coupon.management.response.APIResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,6 +21,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 
@@ -33,9 +35,24 @@ public class CouponUtil {
     public CouponUtil(ObjectMapper mapper){
         this.mapper = mapper;
     }
+
+    //Validation methods starts here.Soon it will be moved to separate validators under validators package for each coupon.
+    /*
+        To check whether the coupon is valid
+     */
+    public void isValidCoupon(int couponId) throws Exception{
+        Coupon coupon = getCouponById(couponId);
+        if(coupon == null){
+            throw new CouponException(CouponAPIConstant.COUPON_NOT_FOUND);
+        }
+        LocalDate currentDate = LocalDate.now();
+        if(coupon.getExpirationDate().isBefore(currentDate)){
+            throw new CouponException(CouponAPIConstant.COUPON_EXPIRED);
+        }
+    }
     @Autowired
-    CouponDAL<Coupon> couponDAL;
-    public Coupon validateCouponDetailsForCreate(CouponRequest couponRqst) throws Exception{
+    CouponDAL couponDAL;
+    public Coupon validateCouponDetailsForCreateOrUpdate(CouponRequest couponRqst) throws Exception{
         String type = couponRqst.getType();
         if(!allowedTypes.contains(type)){
             throw new CouponException(CouponAPIConstant.COUPON_NOT_FOUND);
@@ -56,6 +73,7 @@ public class CouponUtil {
         }
         return null;
     }
+
 
     private void setTypeKV(CouponRequest couponRqst,String type){
         ObjectNode details = (ObjectNode) couponRqst.getDetails();
@@ -97,7 +115,24 @@ public class CouponUtil {
     }
     public JsonNode constructJSONForApplyCoupon(Cart cart) throws Exception{
         ObjectNode responseJson = mapper.createObjectNode();
-        responseJson.put("updated_cart",mapper.writeValueAsString(cart));
+        ObjectNode innerJson = mapper.createObjectNode();
+        innerJson.set("items",constructItemsJSON(cart.getProducts()));
+        innerJson.put("total_price",cart.getTotalPrice());
+        innerJson.put("total_discount",cart.getTotalDiscount());
+        innerJson.put("final_price",cart.getFinalPrice());
+        responseJson.set("updated_cart",innerJson);
         return responseJson;
+    }
+    private ArrayNode constructItemsJSON(List<Product> products) throws Exception{
+        ArrayNode productJsons = mapper.createArrayNode();
+        for(Product product : products){
+            ObjectNode productJson = mapper.createObjectNode();
+            productJson.put("product_id", product.getProductId());
+            productJson.put("quantity", product.getQuantity());
+            productJson.put("price", product.getPrice());
+            productJson.put("total_discount", product.getTotalDiscount());
+            productJsons.add(productJson);
+        }
+        return productJsons;
     }
 }

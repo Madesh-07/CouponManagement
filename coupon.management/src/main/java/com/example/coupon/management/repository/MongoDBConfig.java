@@ -13,7 +13,7 @@ public class MongoDBConfig {
 
     @Value("${spring.data.mongodb.uri}")
     String connectionStringURI;
-    @Bean
+    @Bean(name = "mongoTemplate")
     public MongoTemplate mongoTemplate() {
         MongoClient mongoClient = MongoClients.create(connectionStringURI);
         return new MongoTemplate(new SimpleMongoClientDatabaseFactory(mongoClient, "coupon_management"));
