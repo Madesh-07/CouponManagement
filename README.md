@@ -1,5 +1,6 @@
-CouponManagement
-Coupon Management System Design:
+**CouponManagement**
+
+**Coupon Management System Design:**
 
  <img width="1332" alt="Screenshot 2024-09-09 at 6 21 29 PM" src="https://github.com/user-attachments/assets/a8a40af8-8708-46c5-bf5c-8447b4b88d0b">
 
