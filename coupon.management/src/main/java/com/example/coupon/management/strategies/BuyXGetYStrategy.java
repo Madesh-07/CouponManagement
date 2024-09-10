@@ -59,14 +59,10 @@ public class BuyXGetYStrategy implements CouponStrategy {
         this.totalCartPrice = 0.0;
         List<Product> products = this.cart.getProducts();
         this.productIdVQuantity = constructProductIdVsQuantity(products,totalCartPrice);
-        try{
-            this.coupons = couponDAL.getCouponsByQuery(constructQueryForGettingApplicableCoupons(productIdVQuantity), BuyXGetYCoupon.class);
-            filterCoupons();
-            calculateDiscount();
-            return coupons;
-        }catch (Exception e){
-            return null;
-        }
+        this.coupons = couponDAL.getCouponsByQuery(constructQueryForGettingApplicableCoupons(productIdVQuantity), BuyXGetYCoupon.class);
+        filterCoupons();
+        calculateDiscount();
+        return coupons;
     }
     /*
         To filter out the BUYXGETY coupons.

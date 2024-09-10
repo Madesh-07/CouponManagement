@@ -50,13 +50,9 @@ public class ProductWiseStrategy implements CouponStrategy {
         this.totalCartPrice = 0.0;
         List<Product> products = cart.getProducts();
         this.productIdVsTotalProductPrice = constructProductIdVsTotalProductPrice(products,this.totalCartPrice);
-        try{
-            this.coupons = couponDAL.getCouponsByQuery(constructQueryForGettingApplicableCoupons(productIdVsTotalProductPrice), ProductWiseCoupon.class);
-            calculateDiscount();
-            return this.coupons;
-        }catch (Exception e){
-            return null;
-        }
+        this.coupons = couponDAL.getCouponsByQuery(constructQueryForGettingApplicableCoupons(productIdVsTotalProductPrice), ProductWiseCoupon.class);
+        calculateDiscount();
+        return this.coupons;
     }
 
     @Override

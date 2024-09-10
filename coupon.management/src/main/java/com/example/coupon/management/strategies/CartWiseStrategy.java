@@ -51,13 +51,9 @@ public class CartWiseStrategy implements CouponStrategy{
         this.totalCartPrice = 0.0;
         List<Product> products = this.cart.getProducts();
         processTotalCartPrice(products,this.totalCartPrice);
-        try{
-            this.coupons = couponDAL.getCouponsByQuery(constructQueryForGettingApplicableCoupons(totalCartPrice), CartWiseCoupon.class);
-            calculateDiscount();
-            return this.coupons;
-        }catch (Exception e){
-            return null;
-        }
+        this.coupons = couponDAL.getCouponsByQuery(constructQueryForGettingApplicableCoupons(totalCartPrice), CartWiseCoupon.class);
+        calculateDiscount();
+        return this.coupons;
     }
     /*
          To calculate discount for the cart w.r.t cart wise coupon
